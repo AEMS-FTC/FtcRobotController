@@ -13,13 +13,13 @@ public class Constants {
     }
 
     class AutonomousConstants {
-        public static final double turningP = 0.0000015;
-        public static final double strafeP = 1/10^10;
-        public static final double lateralP = 1/10^10;
+        public static final double turningP = 0.018;
+        public static final double strafeP = 0.0002;
+        public static final double lateralP = 0.0001;
         public static final double breakThreshold = 0.01;
     }
 
     class HardwareConstants {
-        public static final double odometerWheelCircumference = (23.04 * Math.PI);
+        public static final double odometerWheelCircumference = (9.6 * Math.PI);
     }
 }

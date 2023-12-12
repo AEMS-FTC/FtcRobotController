@@ -56,7 +56,7 @@ public class ExperimentalUniversalMovement extends LinearOpMode {
 
         waitForStart();
         resetOdometers();
-        universalMovement(10 , 180);
+        universalMovement(200, 45);
     }
 
     //! MOVEMENT FUNCTIONS BELOW
@@ -71,8 +71,16 @@ public class ExperimentalUniversalMovement extends LinearOpMode {
         double distance_ticks = distance_cm * 2000 / Constants.HardwareConstants.odometerWheelCircumference;
 
         //Storing Cosine and Sine values from the angle (reduce lag and risk)
-        double angle_cos = Math.cos(angle_radians);
-        double angle_sin = Math.sin(angle_radians);
+        double angle_cos;
+        double angle_sin;
+
+        if (angle_degrees < 360 && angle_degrees > 180) {
+            angle_cos = -Math.cos(angle_radians);
+            angle_sin = -Math.sin(angle_radians);
+        } else {
+            angle_cos = Math.cos(angle_radians);
+            angle_sin = Math.sin(angle_radians);
+        }
 
         //* Command Loop
         while(opModeIsActive()) {
@@ -80,20 +88,20 @@ public class ExperimentalUniversalMovement extends LinearOpMode {
             //Creating the Strafe power, multiplies by the Cosine value so that movement remains linear
             double strafe_power = GlobalFunctions.proportional(
                     angle_cos * distance_ticks,
-                    strafe_odometer.getCurrentPosition(),
+                    -strafe_odometer.getCurrentPosition(),
                     Constants.AutonomousConstants.strafeP
             ) * angle_cos;
 
             //Creating the Lateral power, multiplies by the Sine value so that movement remains linear
             double lateral_power = GlobalFunctions.proportional(
                     angle_sin * distance_ticks,
-                    left_odometer.getCurrentPosition(),
+                    -left_odometer.getCurrentPosition(),
                     Constants.AutonomousConstants.lateralP
             ) * angle_sin;
 
             //Storing the power value for each wheel
-            double left_front_power = lateral_power + strafe_power;
-            double left_back_power = lateral_power - strafe_power;
+            double left_front_power = lateral_power - strafe_power;
+            double left_back_power = lateral_power + strafe_power;
 
             double right_front_power = lateral_power - strafe_power;
             double right_back_power = lateral_power + strafe_power;

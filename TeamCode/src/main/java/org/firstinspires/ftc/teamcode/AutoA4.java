@@ -8,16 +8,13 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Constants.Directions;
 
-import java.util.Timer;
-
-@Autonomous(name = "Odometer Movement Tests", group = "Strafer")
-public class AutonomousTemplate extends LinearOpMode {
+@Autonomous(name = "Auto Blue A4", group = "Auto Gyro")
+public class AutoA4 extends LinearOpMode {
 
     //* Declaring Hardware Devices
     //Motors
@@ -94,18 +91,9 @@ public class AutonomousTemplate extends LinearOpMode {
         gyroscope.resetYaw();
 
         //! COMMANDS
-//        linearMovement(Directions.RIGHT, 100);
-//        rotate90deg(Directions.COUNTER_CLOCKWISE);
-//        rotate90deg(Directions.COUNTER_CLOCKWISE);
-//        linearMovement(Directions.RIGHT, 100);
-//        rotate90deg(Directions.COUNTER_CLOCKWISE);
-//        rotate90deg(Directions.COUNTER_CLOCKWISE);
-
-        linearMovement(Directions.FORWARD, 100);
-        linearMovement(Directions.RIGHT, 100);
-        linearMovement(Directions.BACKWARD, 100);
-        linearMovement(Directions.LEFT, 100);
-
+        //Works as intended (kind of, moves only around 3cm when strafing but works)
+        linearMovement(Directions.RIGHT, 10);
+        linearMovement(Directions.FORWARD, 90);
 
 //        while(opModeIsActive()) {
 //            clawActuate.getController().setServoPosition(clawActuate.getPortNumber(), 0.5);
@@ -121,7 +109,7 @@ public class AutonomousTemplate extends LinearOpMode {
         resetOdometers();
 
         //Storing odometer start position
-        double lateralStartPosition = leftLateralOdometer.getCurrentPosition();
+        double lateralStartPosition = rightLateralOdometer.getCurrentPosition();
         double strafeStartPosition = strafeOdometer.getCurrentPosition();
 
         //Defines Power Values
@@ -129,16 +117,16 @@ public class AutonomousTemplate extends LinearOpMode {
         double strafePower = 0;
 
         //Creates a value based on the # of ticks in a given distance
-        double tickDistance = distance * 2000 / Constants.HardwareConstants.odometerWheelCircumference;
+        double tickDistance = distance * 4000 / Constants.HardwareConstants.odometerWheelCircumference;
+
+        resetRuntime();
 
         //Command loop
         while (opModeIsActive()) {
 
-            resetRuntime();
-
             if (direction == Directions.FORWARD) {
                 lateralPower = GlobalFunctions.proportional(
-                        lateralStartPosition + tickDistance,
+                        lateralStartPosition + tickDistance * 0.96,
                         -rightLateralOdometer.getCurrentPosition(),
                         Constants.AutonomousConstants.lateralP
                 );
@@ -147,7 +135,7 @@ public class AutonomousTemplate extends LinearOpMode {
 
             } else if (direction == Directions.BACKWARD) {
                 lateralPower = GlobalFunctions.proportional(
-                        lateralStartPosition - tickDistance,
+                        lateralStartPosition - tickDistance * 0.96,
                         -rightLateralOdometer.getCurrentPosition(),
                         Constants.AutonomousConstants.lateralP
                 );
@@ -175,11 +163,7 @@ public class AutonomousTemplate extends LinearOpMode {
             }
 
             if (lateralPower >= -0.01 && lateralPower <= 0.01
-                    && strafePower >= -0.01 && strafePower <= 0.01) {
-                break;
-            }
-
-            if(getRuntime() >= 3) {
+                    && strafePower >= -0.01 && strafePower <= 0.01 || getRuntime() >= 4) {
                 break;
             }
         }

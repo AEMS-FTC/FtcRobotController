@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -10,6 +11,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Autonomous(name = "Strafer Blue A4", group = "Strafer Competition")
+@Disabled
 public class straferA4 extends LinearOpMode {
 
     //Declaring Left and Right Motors
@@ -40,16 +42,17 @@ public class straferA4 extends LinearOpMode {
         //Creating IMU configuration object
         IMU.Parameters imuParam = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
+                        RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                        RevHubOrientationOnRobot.UsbFacingDirection.UP
                 )
         );
 
         //Initializing IMU and Start Actions
         imu.initialize(imuParam);
         waitForStart();
-        strafeRobot(.5,-260);
-        lateralRobot(.5, -1600);
+//        strafeRobot(.5,-260);
+//        lateralRobot(.5, -1600);
+        turnRobot(90);
     }
 
     //Creating function to return value proportional to the difference

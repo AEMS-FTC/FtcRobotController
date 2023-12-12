@@ -53,7 +53,7 @@ public class odometryDemo extends LinearOpMode {
         //Initializing IMU and Start Actions
         imu.initialize(imuParam);
         waitForStart();
-        strafeRobot(1, -11);
+        strafeRobot(1, 10);
     }
 
     //Creating turnRobot method to turn to an angle using a Proportional Function [-180, 180]

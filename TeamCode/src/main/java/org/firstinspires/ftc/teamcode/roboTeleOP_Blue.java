@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -16,23 +17,21 @@ public class roboTeleOP_Blue extends OpMode {
     DcMotor brmotor;
     DcMotor frmotor;
     DcMotor lift;
-    Servo launcher;
+    CRServo launcher;
     Servo clawPitch;
     Servo clawRoll;
     Servo clawActuate;
     IMU gyro;
-    DcMotor strafeEncoder;
 
-    DcMotor leftOdometer;
-    DcMotor rightOdometer;
+    double clawPitchAngle;
 
     @Override
     public void init(){
 
-        blmotor = hardwareMap.get(DcMotor.class,"blmotor");
-        flmotor = hardwareMap.get(DcMotor.class,"flmotor");
-        brmotor = hardwareMap.get(DcMotor.class,"brmotor");
-        frmotor = hardwareMap.get(DcMotor.class,"frmotor");
+        blmotor = hardwareMap.get(DcMotor.class,"left_back");
+        flmotor = hardwareMap.get(DcMotor.class,"left_front");
+        brmotor = hardwareMap.get(DcMotor.class,"right_back");
+        frmotor = hardwareMap.get(DcMotor.class,"right_front");
 
         blmotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flmotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -42,18 +41,15 @@ public class roboTeleOP_Blue extends OpMode {
         lift = hardwareMap.get(DcMotor.class, "hook");
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        launcher = hardwareMap.get(Servo.class, "railServo");
+        launcher = hardwareMap.get(CRServo.class, "railServo");
         clawActuate = hardwareMap.get(Servo.class, "claw");
         clawPitch = hardwareMap.get(Servo.class, "clawPitch");
         clawRoll = hardwareMap.get(Servo.class, "clawRoll");
 
-        strafeEncoder = hardwareMap.get(DcMotor.class, "strafeEncoder");
-
-        leftOdometer = hardwareMap.get(DcMotor.class, "leftOdometer");
-        rightOdometer = hardwareMap.get(DcMotor.class, "rightOdometer");
-
         clawPitch.scaleRange(-1, 1);
         clawRoll.scaleRange(-1, 1);
+
+        clawPitchAngle = 0.03;
 
         gyro = hardwareMap.get(IMU.class, "imu");
 
@@ -67,15 +63,11 @@ public class roboTeleOP_Blue extends OpMode {
         frmotor.setDirection(DcMotor.Direction.FORWARD);
         brmotor.setDirection(DcMotor.Direction.FORWARD);
 
-
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         gyro.initialize(imuParam);
-        leftOdometer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightOdometer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         gyro.resetYaw();
     }
@@ -106,9 +98,9 @@ public class roboTeleOP_Blue extends OpMode {
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.
-        double leftFrontPower  = axial + lateral + yaw;
+        double leftFrontPower  = axial - lateral + yaw; //swapped
         double rightFrontPower = axial - lateral - yaw;
-        double leftBackPower   = axial - lateral + yaw;
+        double leftBackPower   = axial + lateral + yaw; //swapped
         double rightBackPower  = axial + lateral - yaw;
 
         if(gamepad1.start) {
@@ -128,18 +120,18 @@ public class roboTeleOP_Blue extends OpMode {
             rightBackPower  /= max;
         }
 
-        // Send calculated power to wheels
-        flmotor.setPower(leftFrontPower * pModifier);
-        frmotor.setPower(rightFrontPower * pModifier);
-        blmotor.setPower(leftBackPower * pModifier);
-        brmotor.setPower(rightBackPower * pModifier);
+                        // Send calculated power to wheels
+                        flmotor.setPower(GlobalFunctions.slew((leftFrontPower * pModifier), flmotor.getPower(), 0.15));
+                        frmotor.setPower(GlobalFunctions.slew((rightFrontPower * pModifier), frmotor.getPower(), 0.15));
+                        blmotor.setPower(GlobalFunctions.slew((leftBackPower * pModifier), blmotor.getPower(), 0.15));
+                        brmotor.setPower(GlobalFunctions.slew((rightBackPower * pModifier), brmotor.getPower(), 0.15));
 
         lift.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
 
         if(gamepad2.a) {
-            launcher.setPosition(0);
+            launcher.setPower(-1);
         } else if (gamepad2.b) {
-            launcher.setPosition(0.4);
+            launcher.setPower(1);
         } else {}
 
         if(gamepad2.left_bumper) {
@@ -148,29 +140,24 @@ public class roboTeleOP_Blue extends OpMode {
             clawActuate.setPosition(0);
         }
 
-        if (gamepad2.dpad_up) {
-            clawPitch.setPosition(0.45);
-        } else if (gamepad2.dpad_right) {
-            clawPitch.setPosition(0.5);
-        } if (gamepad2.dpad_down) {
-            clawPitch.setPosition(0.03);
-        }
+        clawPitchAngle = Range.clip(clawPitchAngle, 0.03, 0.45);
+        clawPitchAngle += -gamepad2.left_stick_y*0.025;
+
+//        if (gamepad2.dpad_up) {
+//            clawPitch.setPosition(0.45);
+//        } else if (gamepad2.dpad_right) {
+//            clawPitch.setPosition(0.5);
+//        } if (gamepad2.dpad_down) {
+//            clawPitch.setPosition(0.03);
+//        }
+        clawPitch.setPosition(clawPitchAngle);
+
         clawRoll.setPosition(Range.clip(gamepad2.right_stick_x, 0.03, 1));
 
         // Show the wheel power.
-        telemetry.addData("Strafe Encoder", strafeEncoder.getCurrentPosition());
         telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
         telemetry.addData("Robot Yaw", Math.round(gyro.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)));
-        telemetry.addData("Left Odometer", Math.round(
-                leftOdometer.getCurrentPosition() * 2000 / Constants.HardwareConstants.odometerWheelCircumference
-        ));
-        telemetry.addData("Right Odometer", Math.round(
-                rightOdometer.getCurrentPosition() * 2000 / Constants.HardwareConstants.odometerWheelCircumference
-        ));
-        telemetry.addData("Strafe Odometer", Math.round(
-                strafeEncoder.getCurrentPosition() * 2000 / Constants.HardwareConstants.odometerWheelCircumference
-        ));
         telemetry.update();
 
     }

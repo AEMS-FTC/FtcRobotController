@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
+
 import org.firstinspires.ftc.teamcode.GlobalFunctions;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -21,6 +23,11 @@ public class straferA2 extends LinearOpMode {
 
     DcMotorEx rightBack = null;
     DcMotorEx rightFront = null;
+
+    // Claw
+    Servo clawPitch;
+    Servo clawRoll;
+    Servo clawActuate;
 
     //Declaring IMU (builtin 3-Axis Accelerometer)
     IMU imu = null;
@@ -40,6 +47,13 @@ public class straferA2 extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotorEx.class, "brmotor");
         rightFront = hardwareMap.get(DcMotorEx.class, "frmotor");
 
+        clawActuate = hardwareMap.get(Servo.class, "claw");
+        clawPitch = hardwareMap.get(Servo.class, "clawPitch");
+        clawRoll = hardwareMap.get(Servo.class, "clawRoll");
+
+        clawPitch.scaleRange(-1, 1);
+        clawRoll.scaleRange(-1, 1);
+
         strafeEncoder = hardwareMap.get(DcMotor.class, "strafeEncoder");
 
         imu = hardwareMap.get(IMU.class, "imu");
@@ -55,8 +69,31 @@ public class straferA2 extends LinearOpMode {
         //Initializing IMU and Start Actions
         imu.initialize(imuParam);
         waitForStart();
-        strafeRobot(.5, -2600);
-        lateralRobot(.5, -3850);
+        // Strafe right 126cm
+        strafeRobot(.5, -10);
+        // Move forward 247cm
+        //lateralRobot(.5, -3850);
+
+        //telemetry.addData("Claw:", "Begin!");
+
+        /*
+        while(opModeIsActive()) {
+            clawActuate.setPosition(0.3);
+            clawPitch.setPosition(0.45);
+        }
+        */
+
+        /*
+        // Close claw
+        clawActuate.setPosition(0.3);
+        // Open claw
+        clawActuate.setPosition(0);
+
+        // Claw lift up
+        clawPitch.setPosition(0.45);
+        // Claw lower down
+        clawPitch.setPosition(0.03);
+        */
     }
 
     //Creating turnRobot method to turn to an angle using a Proportional Function [-180, 180]
